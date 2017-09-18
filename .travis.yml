@@ -1,3 +1,4 @@
 language: java
 version: 7
 script: mvn package
+        java Demo
