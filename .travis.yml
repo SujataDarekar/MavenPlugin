@@ -1,5 +1,5 @@
 language: java
 version: 7
 script: 
+ - mvn compile
  - mvn package
- - java Demo
