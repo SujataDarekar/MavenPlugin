@@ -1,5 +1,6 @@
 language: java
-version: 7
+version: 1.7
 script: 
  - mvn compile
  - mvn package
+BUILDPATH: https://github.com/SujataDarekar/MavenPlugin
