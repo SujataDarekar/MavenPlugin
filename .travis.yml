@@ -3,5 +3,3 @@ version: 1.8
 script: 
  - mvn compile
  - mvn package
-os: osx
-HOME:https://github.com/SujataDarekar/MavenPlugin
