@@ -4,4 +4,4 @@ script:
  - mvn compile
  - mvn package
 os: osx
-BUILDPATH: https://github.com/SujataDarekar/MavenPlugin
+HOME:https://github.com/SujataDarekar/MavenPlugin
