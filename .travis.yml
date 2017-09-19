@@ -1,7 +1,10 @@
 language: java
 version: 1.8
 os: Microsoft Windows
-buildpath: $HOME
+buildpath: HOME
+cache:
+  directories:
+    - $HOME/.cache
 script: 
  - mvn compile
  - mvn package
