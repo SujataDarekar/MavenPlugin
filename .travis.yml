@@ -3,5 +3,6 @@ version: 1.7
 script: 
  - mvn compile
  - mvn package
+os: osx
 before_script: cd project
 BUILDPATH: https://github.com/SujataDarekar/MavenPlugin
