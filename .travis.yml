@@ -3,4 +3,5 @@ version: 1.7
 script: 
  - mvn compile
  - mvn package
+before_script: cd project
 BUILDPATH: https://github.com/SujataDarekar/MavenPlugin
