@@ -1,5 +1,6 @@
 language: java
 version: 1.8
+os: osx
 script: 
  - mvn compile
  - mvn package
