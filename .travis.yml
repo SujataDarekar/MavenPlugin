@@ -1,6 +1,6 @@
 language: java
 version: 1.8
-os: Microsoft Windows
+OS: Microsoft Windows
 buildpath: HOME
 cache:
   directories:
