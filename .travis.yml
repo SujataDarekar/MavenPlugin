@@ -11,6 +11,6 @@ cache:
 script: 
  - mvn compile
  - mvn package
- -git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
- -git push origin master
+ - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
+ - git push origin master
 
