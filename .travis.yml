@@ -3,11 +3,11 @@ version: 1.8
 OS: Windows10
 buildpath: HOME
 env:
-   - HOME: "D:/EAR"
-   - TRAVIS_BUILD_DIR: "D:/EAR"
+   - HOME: "D"
+   - TRAVIS_BUILD_DIR: "D"
 cache:
   directories:
     - $HOME/.cache
 script: 
  - mvn compile
- - mvn package -Ddir="https://github.com/SujataDarekar/MavenPlugin/tree/master/src/main/java/com/tibco/bw/maven/plugin/build"
+ - mvn package
