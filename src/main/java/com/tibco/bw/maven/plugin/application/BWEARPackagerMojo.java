@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +32,13 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.eclipse.aether.graph.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -54,12 +60,15 @@ public class BWEARPackagerMojo extends AbstractMojo {
 	@Parameter(property="project.basedir")
 	private File projectBasedir;
 
-   @Component
+    @Component
     private MavenSession session;
 
-   @Component
+    @Component
     private MavenProject project;
 
+    @Component
+    ProjectDependenciesResolver resolver;
+    
     private List<File> tempFiles;
 
     private Manifest manifest;
@@ -79,6 +88,30 @@ public class BWEARPackagerMojo extends AbstractMojo {
     //The version to be updated in the Application Manifest. 
     String version;
 
+    protected String pluginsToIgnore[] = null;
+    
+    //list of properties which needs to be apply to components of an application
+    public static ArrayList<String> componentPropertylist;
+    //mapping of property versus IsComponentSpecific
+    public static HashMap<String,Boolean> componentPropertyMap;
+    
+    Boolean isComponenetSpecific;
+    
+    static{
+    	componentPropertylist=new ArrayList<>();
+		componentPropertylist.add(Constants.PROPERTY_PRIORITY);
+		componentPropertylist.add(Constants.PROPERTY_FLOWLIMIT);
+		componentPropertylist.add(Constants.PROPERTY_PAGETHRESHOLD);
+		componentPropertylist.add(Constants.PROPERTY_RETAINFAULTEDJOB);
+		componentPropertylist.add(Constants.PROPERTY_RECOVERONRESTART);
+				
+		componentPropertyMap=new HashMap<>();
+		componentPropertyMap.put(Constants.PROPERTY_PRIORITY,true);
+		componentPropertyMap.put(Constants.PROPERTY_FLOWLIMIT,true);
+		componentPropertyMap.put(Constants.PROPERTY_PAGETHRESHOLD,true);
+		componentPropertyMap.put(Constants.PROPERTY_RETAINFAULTEDJOB,false);
+		componentPropertyMap.put(Constants.PROPERTY_RECOVERONRESTART,false);
+    }
     /**
      * Execute Method.
      * 
@@ -89,6 +122,7 @@ public class BWEARPackagerMojo extends AbstractMojo {
     	    tempFiles = new ArrayList<File>();
     	    jarchiver = new JarArchiver();
     	    archiver = new MavenArchiver();
+    	   
     	    archiveConfiguration = new MavenArchiveConfiguration();
     	    moduleVersionMap = new HashMap<String, String>();
             manifest = ManifestParser.parseManifest(projectBasedir);
@@ -180,11 +214,95 @@ public class BWEARPackagerMojo extends AbstractMojo {
                 	this.version = version;
                 	isAppModuleArtifact = false;
                 }*/
+                
+              
             }
+            
+    		List<MavenProject> projects = parser.getModulesProjectSet();
+    		for(MavenProject project : projects){
+    			
+    			Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
+    			Set<File> artifactFiles = new HashSet<File>(); 
+
+    			for(Artifact artifact : dependencyArtifacts) {
+    				if(artifact.getVersion().equals("0.0.0")) { //$NON-NLS-1$
+    					continue;
+    				}
+    				
+    				if(moduleVersionMap.containsKey(artifact.getArtifactId())){
+    					continue;
+    				}
+    				
+					artifactFiles.add(artifact.getFile());
+    			}
+
+    			//This code allows dependencies delared in a Module to make it to the root level of the ear file
+    			//This is necessary for the ear file to run properly
+    	        DependencyResolutionResult resolutionResult = getDependenciesResolutionResult();
+
+    	        if (resolutionResult != null) {
+    	        	for(Dependency dependency : resolutionResult.getDependencies()) {
+    	    			if(dependency.getArtifact().getVersion().equals("0.0.0")) { //$NON-NLS-1$
+    	    				continue;
+    	    			}
+    	    			
+    	    			if(moduleVersionMap.containsKey(dependency.getArtifact().getArtifactId())){
+    	    				continue;
+    	    			}
+    	    			
+    	                String dependencyVersion = BWProjectUtils.getModuleVersion(dependency.getArtifact().getFile());
+    	                moduleVersionMap.put(dependency.getArtifact().getArtifactId(), dependencyVersion);
+    					artifactFiles.add(dependency.getArtifact().getFile());
+    	        	}
+    	        }  
+    	        
+    			for(File file : artifactFiles) {
+    				if(isPluginToIgnore(file.getName())){//if(file.getName().indexOf("com.tibco.bw.palette.shared") != -1 || file.getName().indexOf("com.tibco.xml.cxf.common") != -1 || file.getName().indexOf("tempbw") != -1) {
+    					continue;
+    				}
+    				jarchiver.addFile(file, file.getName());
+    			}
+    		}
     	} catch(Exception e) {
     		getLog().error("Failed to add modules to the Application");
     		throw e;
     	}
+    }
+    
+	private DependencyResolutionResult getDependenciesResolutionResult() {
+		DependencyResolutionResult resolutionResult = null;
+        try {
+        	getLog().debug("Looking up dependency tree for the current project => " +  project + " and the current session => " + session);
+            DefaultDependencyResolutionRequest resolution = new DefaultDependencyResolutionRequest(project, session.getRepositorySession());
+            resolutionResult = resolver.resolve(resolution);
+        } catch (DependencyResolutionException e) {
+        	getLog().debug("Caught DependencyResolutionException for the project => " + e.getMessage() + " with cause => " + e.getCause());
+        	e.printStackTrace();
+            resolutionResult = e.getResult();
+        }
+		return resolutionResult;
+	}
+    
+    protected String[] getPluginsToIgnore(){
+    	if(pluginsToIgnore == null){
+    		pluginsToIgnore = new String[]{
+    				"com.tibco.bw.palette.shared",
+    				"com.tibco.xml.cxf.common",
+    				"tempbw"
+    		};
+    	}
+    	
+    	return pluginsToIgnore;
+    }
+    
+    protected boolean isPluginToIgnore(String pluginName){
+    	for(String toIgnore : getPluginsToIgnore()){
+    		if(pluginName.startsWith(toIgnore)){
+    			return true;
+    		}
+    	}
+    	
+    	return false;
     }
 
 	/**
@@ -224,8 +342,9 @@ public class BWEARPackagerMojo extends AbstractMojo {
     	    } else if(fileList[i].getName().indexOf("TIBCO.xml") != -1) { // If the File is TIBCO.xml then the each Module Version needs to be updated in the File.
     	    	File tibcoXML = getUpdatedTibcoXML(fileList[i]);
     	    	jarchiver.addFile(tibcoXML, "META-INF/" + fileList[i].getName());
-    	    } else if(fileList[i].getName().indexOf(".substvar") != -1) { // The substvar files need to be added as it is.
-    	    	jarchiver.addFile(fileList[i], "META-INF/" + fileList[i].getName());
+    	    } else if(fileList[i].getName().indexOf(".substvar") != -1) { // The substvar files needs to update to add dynamic properties.
+    	    	File substvar = getUpdatedSubstvarFile(fileList[i]);
+    	    	jarchiver.addFile(substvar, "META-INF/" + fileList[i].getName());
     	    } else { // The rest of the files can be ignored.
     	    	continue;
     	    }
@@ -319,6 +438,21 @@ public class BWEARPackagerMojo extends AbstractMojo {
 		File file = saveTibcoXML(doc);
 		return file;
 	}
+	
+	
+	/**
+	 * Gets the substvar file with the updated Dynamic properties
+	 * @param substvar the Application Project .substvar files
+	 * @return the updated .substvar files
+	 * @throws Exception
+	 */
+	private File getUpdatedSubstvarFile(File substvar) throws Exception {
+		getLog().debug("Updating the substvar file with the module versions ");
+		Document doc = loadTibcoXML(substvar);
+		File file = saveTibcoXML(doc);
+		return file;
+	}
+
 
 	/**
 	 * Loads the TibcoXMLfile in a Document object (DOM)
@@ -375,20 +509,251 @@ public class BWEARPackagerMojo extends AbstractMojo {
 	 */
 	private File saveTibcoXML(Document doc) throws Exception {
 		File tempXml = File.createTempFile("bwear", "xml");
+
 		doc.getDocumentElement().normalize();
+		// Added by sujata
+		doc = addDynamicProerties(doc);
+		// Changes End
+		TransformerFactory transformerFactory = TransformerFactory
+				.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
 
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
+		DOMSource source = new DOMSource(doc);
 
-        DOMSource source = new DOMSource(doc);
+		StreamResult result = new StreamResult(tempXml);
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.transform(source, result);
+		tempFiles.add(tempXml);
 
-        StreamResult result = new StreamResult(tempXml);
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.transform(source, result);
-        tempFiles.add(tempXml);
+		getLog().debug(
+				"Updated TibcoXML file to temp location " + tempXml.toString());
+		return tempXml;
+	}
+	
+	
 
-        getLog().debug("Updated TibcoXML file to temp location " + tempXml.toString());
-        return tempXml;
+	/**
+	 * Read the module file to know the number of components in Application and update 
+	  the corresponding XML files on the basis of number of component
+	 * @param doc
+	 * @return updated doc with dynamic properties
+	 * @throws Exception
+	 */
+	private Document addDynamicProerties(Document doc) throws Exception {
+		BWModulesParser parser = new BWModulesParser(session, project);
+		List<Artifact> artifacts = parser.getModulesSet();
+		Artifact artifact = artifacts.get(0);
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		Document moduleDoc = builder.parse(projectBasedir.getParent() + "\\"
+				+ artifact.getArtifactId() + "\\META-INF\\" + "module.bwm");
+		NodeList componentList = moduleDoc.getElementsByTagName(Constants.COMPONENT);
+
+		if (doc.getDocumentURI().contains(".substvar")) {
+			doc = updatePropertyForSubstvar(componentPropertylist,
+					componentPropertyMap, componentList, doc);
+
+		} else {
+			doc = updatePropertyFortibcoXML(componentPropertylist,
+					componentPropertyMap, componentList, doc);
+		}
+
+		return doc;
+	}
+	
+	/**
+	 * Generate the updated tibcoXML files with dynamic properties per component and application
+	 * @param componentPropertylist
+	 * @param componentPropertyMap
+	 * @param componentList
+	 * @param doc
+	 * @return updated document with dynamic properties
+	 * @throws Exception
+	 */
+	private Document updatePropertyFortibcoXML(ArrayList<String> componentPropertylist,
+			HashMap<String, Boolean> componentPropertyMap,
+			NodeList componentList, Document doc) throws Exception{
+		String packageType = null;
+		NodeList proerties = doc.getElementsByTagName("packaging:properties");
+		Element rootElement = (Element) proerties.item(0);
+
+		for (int i = 0; i < componentPropertylist.size(); i++) {
+			packageType = getPackageType(componentPropertylist, i, true);
+			isComponenetSpecific = componentPropertyMap.get(componentPropertylist
+					.get(i));
+			if (isComponenetSpecific) {
+				for (int j = 0; j < componentList.getLength(); j++) {
+					Element component = (Element) componentList.item(j);
+					doc = generateTextNodesForTibcoXML(rootElement, componentPropertylist,
+							componentList, doc, component, i, packageType);
+				}
+			}
+			doc = generateTextNodesForTibcoXML(rootElement, componentPropertylist,
+					componentList, doc, null, i, packageType);
+
+		}
+		return doc;
+	}
+	
+	/**
+	 * write the actual text node data of dynamic properties in .substvar file
+	 * @param rootElement
+	 * @param componentPropertylist
+	 * @param componentList
+	 * @param doc
+	 * @param component
+	 * @param i
+	 * @param packageType
+	 * @return updated document with text nodes of dynamic properties
+	 */
+	private Document generateTextNodesForTibcoXML(Element rootElement,
+			ArrayList<String> componentPropertylist, NodeList componentList,
+			Document doc, Element component, int i, String packageType) {
+		Element property = doc.createElement("packaging:property");
+		rootElement.appendChild(property);
+
+		Element name = doc.createElement("packaging:name");
+		if (null != component) {
+			name.appendChild(doc.createTextNode(componentPropertylist.get(i)
+					+ "/" + component.getAttribute("name")));
+		} else {
+			name.appendChild(doc.createTextNode(componentPropertylist.get(i)));
+		}
+		property.appendChild(name);
+
+		Element type = doc.createElement("packaging:type");
+		type.appendChild(doc.createTextNode(packageType));
+		property.appendChild(type);
+
+		Element visibility = doc.createElement("packaging:visibility");
+		visibility.appendChild(doc.createTextNode("public"));
+		property.appendChild(visibility);
+
+		Element scalable = doc.createElement("packaging:scalable");
+		scalable.appendChild(doc.createTextNode("true"));
+		property.appendChild(scalable);
+
+		Element overrideValue = doc.createElement("packaging:overrideValue");
+		overrideValue.appendChild(doc.createTextNode("false"));
+		property.appendChild(overrideValue);
+		return doc;
+	}
+
+	/**
+	 * Generate the updated .substvar files with component properties per component and application
+	 * @param componentPropertylist
+	 * @param componentPropertyMap
+	 * @param componentList
+	 * @param XMLdoc
+	 * @return updated document with dynamic properties
+	 */
+	private Document updatePropertyForSubstvar(ArrayList<String> componentPropertylist,
+			HashMap<String, Boolean> componentPropertyMap,
+			NodeList componentList, Document doc) {
+		String packageType = null;
+		NodeList proerties = doc.getElementsByTagName("globalVariables");
+		Element rootElement = (Element) proerties.item(0);
+
+		for (int i = 0; i < componentPropertylist.size(); i++) {
+			packageType = getPackageType(componentPropertylist, i, false);
+			isComponenetSpecific = componentPropertyMap.get(componentPropertylist
+					.get(i));
+			if (isComponenetSpecific) {
+				for (int j = 0; j < componentList.getLength(); j++) {
+
+					Element component = (Element) componentList.item(j);
+
+					doc = generateTextNodesSubstvar(rootElement,
+							componentPropertylist, componentList, doc,
+							component, i, packageType);
+				}
+			}
+			doc = generateTextNodesSubstvar(rootElement, componentPropertylist,
+					componentList, doc, null, i, packageType);
+
+		}
+		return doc;
+	}
+
+	/**
+	 * write the actual text node data of dynamic properties in .substvar file
+	 * @param rootElement
+	 * @param componentPropertylist
+	 * @param componentList
+	 * @param doc
+	 * @param component
+	 * @param i
+	 * @param packageType
+	 * @return updated document with text nodes of dynamic properties
+	 */
+	private Document generateTextNodesSubstvar(Element rootElement,
+			ArrayList<String> componentPropertylist, NodeList componentList,
+			Document doc, Element component, int i, String packageType) {
+		
+		Element property = doc.createElement("globalVariable");
+		rootElement.appendChild(property);
+
+		Element name = doc.createElement("name");
+		if (null != component) {
+			name.appendChild(doc.createTextNode(componentPropertylist.get(i)
+					+ "/" + component.getAttribute("name")));
+		} else {
+			name.appendChild(doc.createTextNode(componentPropertylist.get(i)));
+		}
+		property.appendChild(name);
+
+		Element deploymentSettable = doc.createElement("deploymentSettable");
+		deploymentSettable.appendChild(doc.createTextNode("false"));
+		property.appendChild(deploymentSettable);
+
+		Element serviceSettable = doc.createElement("serviceSettable");
+		serviceSettable.appendChild(doc.createTextNode("false"));
+		property.appendChild(serviceSettable);
+
+		Element type = doc.createElement("type");
+		type.appendChild(doc.createTextNode(packageType));
+		property.appendChild(type);
+
+		Element overrideValue = doc.createElement("isOverrideValue");
+		overrideValue.appendChild(doc.createTextNode("false"));
+		property.appendChild(overrideValue);
+
+		Element description = doc.createElement("description");
+		description.appendChild(doc.createTextNode(" "));
+		property.appendChild(description);
+		return doc;
+	}
+
+	
+	//Return the value of "type" text node based on the Component properties 
+	private String getPackageType(ArrayList<String> componentPropertylist,
+			int i, Boolean xmlData) {
+		String packageTypeTemp = null;
+
+		if (componentPropertylist.get(i).equals(Constants.PROPERTY_PRIORITY)) {
+			if (xmlData)
+				packageTypeTemp = Constants.XML_STRING;
+			else
+				packageTypeTemp = Constants.STRING;
+		} else if (componentPropertylist.get(i).equals(
+				Constants.PROPERTY_FLOWLIMIT)
+				|| componentPropertylist.get(i).equals(
+						Constants.PROPERTY_PAGETHRESHOLD)) {
+			if (xmlData) {
+				packageTypeTemp = Constants.XML_INTEGER;
+			} else {
+				packageTypeTemp = Constants.INTEGER;
+			}
+		} else {
+			if (xmlData) {
+				packageTypeTemp = Constants.XML_BOOLEAN;
+			} else {
+				packageTypeTemp = Constants.BOOLEAN;
+			}
+		}
+
+		return packageTypeTemp;
+
 	}
 
 	/**

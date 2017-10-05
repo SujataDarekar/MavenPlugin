@@ -13,4 +13,18 @@ public interface Constants {
 	public static final String TECHNOLOGY_VERSION = "technologyVersion";
 	public static final String BASIC_AUTH = "BASIC";
 	public static final String DIGEST_AUTH = "DIGEST";
+	public static final String TIBCO_SHARED_MODULE = "TIBCO-BW-SharedModule";
+	public static final String COMPONENT = "sca:component";
+	public static final String PROPERTY_PRIORITY="APP:bw.application.job.priority";
+	public static final String PROPERTY_FLOWLIMIT="APP:bw.application.job.flowlimit";
+	public static final String PROPERTY_PAGETHRESHOLD="APP:bw.application.job.pageThreshold";
+	public static final String PROPERTY_RETAINFAULTEDJOB="APP:bw.application.checkpoint.retainFaultedJob";
+	public static final String PROPERTY_RECOVERONRESTART="APP:bw.application.checkpoint.recoverOnRestart";
+	public static final String XML_STRING = "xsd:string";
+	public static final String STRING = "String";
+	public static final String XML_INTEGER = "xsd:int";
+	public static final String INTEGER = "Integer";
+	public static final String XML_BOOLEAN = "xsd:boolean"; 	
+	public static final String BOOLEAN = "Boolean";
+	
 }
