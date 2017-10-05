@@ -2,6 +2,8 @@ language: java
 version: 1.8
 OS: Windows10
 buildpath: HOME
+env:
+   -HOME= D:/EAR
 cache:
   directories:
     - $HOME/.cache
