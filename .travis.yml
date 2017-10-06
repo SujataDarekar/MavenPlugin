@@ -13,7 +13,7 @@ deploy:
   script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
   skip_cleanup: true
   on:
-    tags: true
+    tags: false
     
 cache:
   directories:
@@ -25,5 +25,5 @@ script:
 
 after_success:
  - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
- - git push --branch=master https://github.com/SujataDarekar/MavenPlugin.git
+ - git push origin https://github.com/SujataDarekar/MavenPlugin.git
 
