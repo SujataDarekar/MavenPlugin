@@ -25,7 +25,7 @@ script:
  - make dist
 deploy:
   provider: releases
-  api_key:$GITHUB_API_KEY
+  api_key: $GITHUB_API_KEY
    file: release.zip
   skip_cleanup: true
   on: tags
