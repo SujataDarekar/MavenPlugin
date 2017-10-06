@@ -25,11 +25,10 @@ script:
  - make dist
 deploy:
   provider: releases
-  api_key:'$GITHUB_API_KEY'
-   file: 'release.zip'
+  api_key:$GITHUB_API_KEY
+   file: release.zip
   skip_cleanup: true
-  on:
-    tags
+  on: tags
 
 after_success:
  - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
