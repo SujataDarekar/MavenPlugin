@@ -14,5 +14,5 @@ script:
  github_url:https://github.com/SujataDarekar/MavenPlugin
 after_success:
  - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
- - git push $origin github_url
+ - git push origin $github_url
 
