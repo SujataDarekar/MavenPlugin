@@ -8,13 +8,7 @@ services:
 env:
    - HOME: "C:/Users/sdarekar"
    - TRAVIS_BUILD_DIR: "D"
-#deploy:
-  #provider: script
- # script: "mvn package && cp /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar https://github.com/SujataDarekar/MavenPlugin/tree/master"
-  #skip_cleanup: true
-  #on:
-   # tags: false
-    
+
 cache:
   directories:
   - "$HOME/.cache"
@@ -23,6 +17,8 @@ script:
  - mvn compile
  - mvn package
  - make dist
+ 
+script:
 deploy:
   provider: releases
   api_key: $GITHUB_API_KEY
