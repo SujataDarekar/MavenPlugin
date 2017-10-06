@@ -25,5 +25,5 @@ script:
 
 after_success:
  - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
- - git push https://github.com/SujataDarekar/MavenPlugin
+ - git push --branch=master https://github.com/SujataDarekar/MavenPlugin.git
 
