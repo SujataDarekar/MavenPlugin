@@ -1,13 +1,24 @@
 language: java
-version: 1.8
+version: 1.7
+sudo: false
 os: Windows10
 buildpath: HOME
+services:
+- docker
 env:
    - HOME: "D"
    - TRAVIS_BUILD_DIR: "D"
+deploy:
+  provider: script
+  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
+  skip_cleanup: true
+  on:
+    tags: true
+    
 cache:
   directories:
-    - $HOME/.cache
+  - "$HOME/.cache"
+
 script: 
  - mvn compile
  - mvn package
