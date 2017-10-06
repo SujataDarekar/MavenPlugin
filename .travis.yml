@@ -6,7 +6,7 @@ buildpath: HOME
 services:
 - docker
 env:
-   - HOME: "D"
+   - HOME: "C:/Users/sdarekar"
    - TRAVIS_BUILD_DIR: "D"
 deploy:
   provider: script
