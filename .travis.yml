@@ -12,11 +12,10 @@ env:
 cache:
   directories:
   - "$HOME/.cache"
- 
-script: 
+  
+  script: 
  - mvn compile
  - mvn package
- - make dist
  
 script:
 deploy:
