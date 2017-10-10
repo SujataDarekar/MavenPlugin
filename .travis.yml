@@ -26,7 +26,5 @@ deploy:
   skip_cleanup: true
   on: tags
 
-after_success:
- - git commit /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar -m "tets"
- - git push origin https://github.com/SujataDarekar/MavenPlugin.git
+
 
