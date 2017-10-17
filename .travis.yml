@@ -13,8 +13,6 @@ services:
  # directories:
   #- "$HOME/.cache"
 
- 
- 
 script:
  - mvn compile
  - mvn package
