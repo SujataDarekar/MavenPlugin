@@ -9,9 +9,9 @@ services:
   # - HOME: "C:/Users/sdarekar"
    #- TRAVIS_BUILD_DIR: "D"
 
-cache:
-  directories:
-  - "$HOME/.cache"
+#cache:
+ # directories:
+  #- "$HOME/.cache"
 
  
  
