@@ -17,7 +17,7 @@ script:
  - mvn compile
  - mvn package
  
-local_dir: "C:/ZipFIleCreation/Unzip/install1"
+#local_dir: "C:/ZipFIleCreation/Unzip/install1"
  
 deploy:
   provider: releases
@@ -28,8 +28,5 @@ deploy:
   on: 
   tags: false
   
-  after_deploy:
-  -./test.sh
-
-
-
+after_deploy:
+  - ./test.sh
