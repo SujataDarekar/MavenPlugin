@@ -17,10 +17,14 @@ script:
  - mvn compile
  - mvn package
  
+ local_dir:C:/ZipFIleCreation/Unzip/install1
+ 
 deploy:
   provider: releases
   api_key: $GITHUB_API_KEY
-  file: /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar
+  file:
+     - /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar
+     - local_dir
   skip_cleanup: true
   on: 
   tags: false
