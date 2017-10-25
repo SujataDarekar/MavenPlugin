@@ -24,10 +24,12 @@ deploy:
   api_key: $GITHUB_API_KEY
   file:
      - /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar
-     - C/ZipFIleCreation/Unzip/install1/TIB_BW_Maven_Plugin_1.2.2.zip
   skip_cleanup: true
   on: 
   tags: false
+  
+  after_deploy:
+  -./test.sh
 
 
 
