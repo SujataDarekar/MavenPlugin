@@ -29,4 +29,4 @@ deploy:
   tags: false
   
 after_deploy:
-  - ./test.sh
+  - test.sh
