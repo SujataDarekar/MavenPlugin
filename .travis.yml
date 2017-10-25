@@ -17,7 +17,6 @@ script:
  - mvn compile
  - mvn package
  
- 
 deploy:
   provider: releases
   api_key: $GITHUB_API_KEY
