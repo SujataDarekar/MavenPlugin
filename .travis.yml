@@ -8,7 +8,8 @@ services:
 #env:
   # - HOME: "C:/Users/sdarekar"
    #- TRAVIS_BUILD_DIR: "D"
-#cache:
+
+  #cache:
  # directories:
   #- "$HOME/.cache"
 
