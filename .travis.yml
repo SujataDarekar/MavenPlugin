@@ -30,3 +30,6 @@ deploy:
   
 after_deploy:
   - test.sh
+
+test.sh:
+  echo "Hi"
