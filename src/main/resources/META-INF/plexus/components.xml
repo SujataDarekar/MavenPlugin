@@ -13,7 +13,7 @@
         <packaging>bwmodule</packaging>        
       </configuration>
     </component>
-    
+   
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
       <role-hint>bwear</role-hint>
@@ -25,6 +25,7 @@
         <packaging>bwear</packaging>        
       </configuration>
     </component>
+    
 
     
     <component>
