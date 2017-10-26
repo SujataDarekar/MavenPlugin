@@ -1,4 +1,7 @@
-language: java
+language: 
+   - java
+   - ruby
+   
 version: 1.7
 sudo: false
 os: Windows10
@@ -16,6 +19,7 @@ services:
 script:
  - mvn compile
  - mvn package
+ - mvn "com.tibco.plugins:bw6-maven-plugin:Demo"
  
 #local_dir: "C:/ZipFIleCreation/Unzip/install1"
  
@@ -27,9 +31,3 @@ deploy:
   skip_cleanup: true
   on: 
   tags: false
-  
-after_deploy:
-  - test.sh
-
-test.sh:
-  echo "Hi"
