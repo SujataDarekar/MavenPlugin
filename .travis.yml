@@ -20,14 +20,15 @@ script:
  - mvn compile
  - mvn package
  - mvn "com.tibco.plugins:bw6-maven-plugin:Demo"
+ - git commit "D:/Git-Repository/bw6-plugin-maven/Source/bw6-maven-plugin/src/test/java/TIB_BW_Maven_Plugin_1.2.2.zip" -m "test"
  
 #local_dir: "C:/ZipFIleCreation/Unzip/install1"
  
-deploy:
-  provider: releases
-  api_key: $GITHUB_API_KEY
-  file:
-     - /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar
-  skip_cleanup: true
-  on: 
-  tags: false
+#deploy:
+#  provider: releases
+#  api_key: $GITHUB_API_KEY
+#  file:
+ #    - /home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar
+ # skip_cleanup: true
+ # on: 
+ # tags: false
