@@ -46,6 +46,7 @@ public class DemoPlugin extends AbstractMojo{
 		        File destDir = new File(destDirectory);
 		       
 		        if (!destDir.exists()) {
+		        	getLog().info("/*****************destDir.mkdir() Function******************/");
 		            destDir.mkdir();
 		        }
 		        ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
@@ -70,9 +71,9 @@ public class DemoPlugin extends AbstractMojo{
 		        
 		    }
 		    
-		    private static void repalceMvenJar(){
-		   	 Path filePath = Paths.get("C://ZipFIleCreation//Unzip//install1/bw6-maven-plugin-1.2.2.jar");
-		        Path zipFilePath = Paths.get("C://ZipFIleCreation//Unzip//install1//TIB_BW_Maven_Plugin_1.2.2//config//bw6-maven-plugin.zip");
+		    private void repalceMvenJar(){
+		   	 Path filePath = Paths.get("/home/travis/build/SujataDarekar/MavenPlugin/target/bw6-maven-plugin-1.2.2.jar");
+		        Path zipFilePath = Paths.get("/home/travis/build/SujataDarekar/MavenPlugin/src/test/TIB_BW_Maven_Plugin_1.2.2/config/bw6-maven-plugin.zip");
 		        try( FileSystem fs = FileSystems.newFileSystem(zipFilePath, null) ){
 		            Path fileInsideZipPath = fs.getPath("/bw6-maven-plugin-1.2.2.jar");
 		            Files.copy(filePath, fileInsideZipPath,StandardCopyOption.REPLACE_EXISTING);
@@ -156,8 +157,9 @@ public class DemoPlugin extends AbstractMojo{
 				zos.closeEntry();
 			}
 		    
-		    private static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-		        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+		    private  void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
+		    	getLog().info("/*****************extractFile Function******************/");
+		    	BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
 		        byte[] bytesIn = new byte[4096];
 		        int read = 0;
 		        while ((read = zipIn.read(bytesIn)) != -1) {
