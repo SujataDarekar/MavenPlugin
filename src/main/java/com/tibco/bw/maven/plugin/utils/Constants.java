@@ -26,7 +26,7 @@ public interface Constants {
 	public static final String INTEGER = "Integer";
 	public static final String XML_BOOLEAN = "xsd:boolean"; 	
 	public static final String BOOLEAN = "Boolean";
-	public static final String ZipFilePath="/home/travis/build/SujataDarekar/MavenPlugin/target/TIB_BW_Maven_Plugin_1.2.2.zip";
+	public static final String ZipFilePath="/home/travis/build/SujataDarekar/MavenPlugin/TIB_BW_Maven_Plugin_1.2.2.zip";
 	public static final String ExtractedZipFilePath="/home/travis/build/SujataDarekar/MavenPlugin/src/test/TIB_BW_Maven_Plugin_1.2.2";
 	
 }
