@@ -15,7 +15,7 @@ public class BWFileUtils {
 			public boolean accept(File pathname) {
 				if (pathname.getName().indexOf( extension ) != -1 )
 				{
-      			return true;
+      			        return true;
 				}
 				return false;
 			}
